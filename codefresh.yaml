@@ -1,0 +1,40 @@
+version: '1.0'
+stages:
+  - clone
+  - build
+  - test
+  - push
+  - notify
+
+steps:
+  clone_repo:
+    title: Cloning Repository
+    type: git-clone
+    repo: 'sarika375/codefreshtest'
+    revision: main
+    stage: clone
+
+  build_image:
+    title: Building Docker Image
+    type: build
+    image_name: sarika375/codefreshtest
+    tag: '${{CF_SHORT_REVISION}}'
+    dockerfile: Dockerfile
+    working_directory: '${{clone_repo}}'
+    stage: build
+
+  run_tests:
+    title: Running Unit Tests
+    image: node:18
+    working_directory: '${{clone_repo}}'
+    commands:
+      - npm install
+      - npm test
+    stage: test
+
+  push_image:
+    title: Pushing Docker Image
+    type: push
+    candidate: '${{build_image}}'
+    registry: dockerhub
+    stage: push
